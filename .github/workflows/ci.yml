@@ -6,7 +6,7 @@ name: ci
 on:
   push:
     branches: [main]
-    paths-ignore: ['**.md', 'docs/**']
+    paths-ignore: ['**.md', 'docs/**', 'ci/cleanup-request.txt', '.github/workflows/cleanup-delivery.yml']
   workflow_dispatch:
 
 concurrency:

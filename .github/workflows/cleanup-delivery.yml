@@ -1,0 +1,25 @@
+# Geçici şifreli teslimat dallarını (delivery-*) siler.
+# Teslimat alındıktan sonra ci/cleanup-request.txt güncellenerek tetiklenir.
+name: cleanup-delivery
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [ci/cleanup-request.txt]
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 1 }
+      - name: delivery-* dallarını sil
+        run: |
+          for b in $(git ls-remote --heads origin 'delivery-*' | awk '{print $2}' | sed 's#refs/heads/##'); do
+            echo "siliniyor: $b"
+            git push origin --delete "$b"
+          done
