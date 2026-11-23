@@ -20,6 +20,7 @@ jobs:
   test:
     name: Analiz + birim/widget + canlı API testleri
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     outputs:
       ready: ${{ steps.ready.outputs.ready }}
     steps:
@@ -76,6 +77,7 @@ jobs:
   android-e2e:
     name: Android emülatör uçtan uca testi
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     needs: test
     if: needs.test.outputs.ready == 'true'
     steps:
@@ -110,6 +112,7 @@ jobs:
   windows:
     name: Windows Setup.exe + uçtan uca test
     runs-on: windows-latest
+    timeout-minutes: 50
     needs: test
     if: needs.test.outputs.ready == 'true'
     defaults:

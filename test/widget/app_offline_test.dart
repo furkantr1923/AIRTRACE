@@ -20,7 +20,8 @@ void main() {
     addTearDown(tester.view.reset);
 
     final prefs = await SharedPreferences.getInstance();
-    final services = await buildServices(prefs, http: SwitchableGateway(offline: true));
+    // Büyük asset'ler compute() ile çözüldüğü için gerçek async bölgede yükle.
+    final services = (await tester.runAsync(() => buildServices(prefs, http: SwitchableGateway(offline: true))))!;
     final sprite = (await tester.runAsync(PlaneSprite.create))!;
     await tester.pumpWidget(AirtraceApp(services: services, sprite: sprite));
     for (var i = 0; i < 4; i++) {
