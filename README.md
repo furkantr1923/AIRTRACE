@@ -155,7 +155,7 @@ Veri sağlayıcıları karşılaştırması (Kasım 2026):
 
 > Kurulum dosyası ücretli bir kod imzalama sertifikasıyla imzalanmadığı için Windows SmartScreen "Bilinmeyen yayıncı" uyarısı gösterebilir. Devam etmek için **Ek bilgi → Yine de çalıştır** seçeneğini kullanın.
 
-**Android 5.0+**
+**Android 7.0+**
 
 `AIRTRACE.apk` dosyasını telefona kopyalayıp açın. İstenirse "bilinmeyen kaynaklardan yüklemeye" izin verin.
 
