@@ -267,6 +267,7 @@ class _AircraftPanelState extends State<AircraftPanel> {
               final r = _results[i];
               if (r.track != null) {
                 return _TrackRow(
+                  key: ValueKey('track-${r.hex}'),
                   track: r.track!,
                   selected: r.hex == s.selection.selectedHex,
                   favorite: s.favorites.contains(r.hex),
