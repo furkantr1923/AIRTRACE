@@ -69,15 +69,18 @@ class _AircraftInfoState extends State<AircraftInfo> {
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             _Header(title: a.displayName, subtitle: t.airlineName ?? (ident.isEmpty ? null : ident), hex: a.hex),
             const SizedBox(height: 14),
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
-              childAspectRatio: widget.compact ? 2.5 : 2.0,
-              children: tiles,
-            ),
+            // Sabit oranlı ızgara yerine içerik yüksekliğine uyan 2x2 düzen:
+            // yazı boyutu büyütülmüş cihazlarda da taşma olmaz.
+            for (var r = 0; r < 2; r++) ...[
+              if (r == 1) const SizedBox(height: 8),
+              IntrinsicHeight(
+                child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  Expanded(child: tiles[r * 2]),
+                  const SizedBox(width: 8),
+                  Expanded(child: tiles[r * 2 + 1]),
+                ]),
+              ),
+            ],
             if (route != null) ...[
               const SizedBox(height: 10),
               Row(children: [
@@ -170,13 +173,13 @@ class _Tile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
         decoration: BoxDecoration(
           color: AppColors.anthracite,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: AppColors.stroke),
         ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
           Text(label, style: const TextStyle(fontSize: 10, letterSpacing: 1.1, color: AppColors.textLo, fontWeight: FontWeight.w600)),
           const SizedBox(height: 3),
           FittedBox(
