@@ -94,6 +94,8 @@ class _AirMapState extends State<AirMap> {
     return FlutterMap(
       mapController: widget.controller,
       options: MapOptions(
+        initialCenter: const LatLng(25, 10),
+        initialZoom: 2,
         initialCameraFit: CameraFit.bounds(bounds: AirMap.worldBounds, minZoom: 1),
         minZoom: 1,
         maxZoom: 14,

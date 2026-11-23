@@ -76,7 +76,7 @@ void main() {
     final started = DateTime.now();
 
     await tester.pumpWidget(AirtraceApp(services: services, sprite: sprite, repaintKey: rootKey));
-    await tester.pump();
+    await settle(tester, 2);
 
     // 1) Uygulama açılıyor, dünya haritası görünüyor.
     expect(find.text('AIRTRACE'), findsWidgets);
