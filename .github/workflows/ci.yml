@@ -1,0 +1,193 @@
+# AIRTRACE sürekli entegrasyon: analiz, testler, Windows kurulum paketi ve
+# Android APK. Derlenen ikili dosyalar herkese açık yayınlanmaz; teslimat
+# paketi geliştiricinin açık anahtarıyla (age) şifrelenir.
+name: ci
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['**.md', 'docs/**']
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP_VERSION: 1.0.0
+
+jobs:
+  test:
+    name: Analiz + birim/widget + canlı API testleri
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.ready.outputs.ready }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Platform dosyaları hazır mı? (bootstrap iş akışı üretir)
+        id: ready
+        run: |
+          if [ -f android/app/build.gradle.kts ]; then echo "ready=true" >> "$GITHUB_OUTPUT"; else echo "ready=false" >> "$GITHUB_OUTPUT"; fi
+      - uses: subosito/flutter-action@v2
+        if: steps.ready.outputs.ready == 'true'
+        with: { channel: stable, cache: true }
+      - run: mkdir -p reports && flutter --version | tee reports/flutter_version.txt
+        if: steps.ready.outputs.ready == 'true'
+      - run: flutter pub get
+        if: steps.ready.outputs.ready == 'true'
+      - name: Statik analiz
+        if: steps.ready.outputs.ready == 'true'
+        run: flutter analyze --no-fatal-infos 2>&1 | tee reports/analyze.txt
+      - name: Birim ve widget testleri
+        if: steps.ready.outputs.ready == 'true'
+        run: set -o pipefail; flutter test --exclude-tags live -r expanded 2>&1 | tee reports/unit_widget.txt
+      - name: Canlı API testleri (gerçek ağ)
+        if: steps.ready.outputs.ready == 'true'
+        run: set -o pipefail; flutter test --tags live test/live -r expanded 2>&1 | tee reports/live_api.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: report-tests, path: reports, retention-days: 7 }
+
+  android:
+    name: Android APK (release)
+    runs-on: ubuntu-latest
+    needs: test
+    if: needs.test.outputs.ready == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - run: flutter pub get
+      - name: APK derle (arm + arm64)
+        run: flutter build apk --release --target-platform android-arm,android-arm64 --build-name=$APP_VERSION --build-number=${{ github.run_number }}
+      - name: Paketle
+        run: |
+          mkdir -p out
+          cp build/app/outputs/flutter-apk/app-release.apk out/AIRTRACE-unsigned.apk
+          BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
+          cp "$BT/lib/apksigner.jar" out/apksigner.jar
+          echo "$(basename $BT)" > out/build-tools.txt
+          ls -la out
+      - uses: actions/upload-artifact@v4
+        with: { name: plain-android, path: out, retention-days: 1 }
+
+  android-e2e:
+    name: Android emülatör uçtan uca testi
+    runs-on: ubuntu-latest
+    needs: test
+    if: needs.test.outputs.ready == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - run: flutter pub get
+      - name: KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Emülatörde gerçek veriyle test
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: mkdir -p reports && bash -c "set -o pipefail; flutter test integration_test/app_test.dart -d emulator-5554 -r expanded 2>&1 | tee reports/android_e2e.txt"
+      - name: Ekran görüntülerini çıkar
+        if: always()
+        run: python3 tool/extract_shots.py reports/android_e2e.txt reports/shots/android
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: report-android-e2e, path: reports, retention-days: 7 }
+
+  windows:
+    name: Windows Setup.exe + uçtan uca test
+    runs-on: windows-latest
+    needs: test
+    if: needs.test.outputs.ready == 'true'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - run: flutter pub get
+      - name: Windows derle
+        run: flutter build windows --release --build-name=$APP_VERSION --build-number=${{ github.run_number }}
+      - name: VC++ çalışma zamanını uygulama klasörüne ekle (ayrı kurulum gerekmesin)
+        shell: pwsh
+        run: |
+          $rel = "build\windows\x64\runner\Release"
+          foreach ($d in "msvcp140.dll","vcruntime140.dll","vcruntime140_1.dll") {
+            Copy-Item "C:\Windows\System32\$d" $rel -Force
+          }
+          Get-ChildItem $rel
+      - name: Inno Setup ile kurulum dosyası
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress | Out-Null }
+          & $iscc /DAppVersion=$env:APP_VERSION /DSourceDir="$PWD\build\windows\x64\runner\Release" installer\airtrace.iss
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath dist\AIRTRACE_Portable.zip
+          Get-ChildItem dist
+      - name: Kurulum / açılış / kaldırma testi
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force reports | Out-Null
+          $log = "reports\windows_installer.txt"
+          Start-Process dist\AIRTRACE_Setup.exe -ArgumentList "/VERYSILENT","/CURRENTUSER","/SUPPRESSMSGBOXES","/NORESTART" -Wait
+          $exe = "$env:LOCALAPPDATA\Programs\AIRTRACE\AIRTRACE.exe"
+          "Kurulum: $(Test-Path $exe) -> $exe" | Tee-Object -Append $log
+          $lnk = Get-ChildItem "$env:APPDATA\Microsoft\Windows\Start Menu\Programs" -Recurse -Filter "AIRTRACE*.lnk"
+          "Başlat menüsü kısayolları: $($lnk.Count)" | Tee-Object -Append $log
+          "Masaüstü kısayolu: $(Test-Path "$env:USERPROFILE\Desktop\AIRTRACE.lnk")" | Tee-Object -Append $log
+          $p = Start-Process $exe -PassThru
+          Start-Sleep -Seconds 20
+          $p.Refresh()
+          "20 sn sonra çalışıyor: $(-not $p.HasExited)  RAM(MB): $([math]::Round($p.WorkingSet64/1MB,1))" | Tee-Object -Append $log
+          if ($p.HasExited) { exit 1 }
+          Stop-Process -Id $p.Id -Force
+          Start-Sleep -Seconds 2
+          Start-Process "$env:LOCALAPPDATA\Programs\AIRTRACE\unins000.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -Wait
+          Start-Sleep -Seconds 3
+          "Kaldırma sonrası exe var mı: $(Test-Path $exe)" | Tee-Object -Append $log
+          if (Test-Path $exe) { exit 1 }
+      - name: Uçtan uca test (gerçek veri, Windows masaüstü)
+        run: |
+          mkdir -p reports/shots/windows
+          set -o pipefail
+          flutter test integration_test/app_test.dart -d windows --dart-define=SHOT_DIR="$(cygpath -w "$PWD/reports/shots/windows")" -r expanded 2>&1 | tee reports/windows_e2e.txt
+      - uses: actions/upload-artifact@v4
+        with: { name: plain-windows, path: dist, retention-days: 1 }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: report-windows, path: reports, retention-days: 7 }
+
+  package:
+    name: Şifreli teslimat paketi
+    runs-on: ubuntu-latest
+    needs: [android, windows]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { pattern: plain-*, path: plain, merge-multiple: true }
+      - name: age ile şifrele (yalnızca geliştirici açabilir)
+        run: |
+          sudo apt-get install -y age >/dev/null
+          mkdir -p delivery
+          tar -C plain -cf - . | age -r "$(cat ci/delivery_recipient.txt)" -o delivery/airtrace-delivery.tar.age
+          (cd plain && sha256sum * > ../delivery/SHA256SUMS.txt)
+          ls -la delivery
+      - uses: actions/upload-artifact@v4
+        with: { name: delivery-encrypted, path: delivery, retention-days: 3 }
+      - uses: geekyeggo/delete-artifact@v5
+        with: { name: plain-* }

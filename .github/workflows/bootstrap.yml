@@ -1,0 +1,50 @@
+# Bir kez çalışır: Android/Windows platform klasörlerini `flutter create` ile
+# üretir, AIRTRACE için yapılandırır (tool/patch_platforms.py), simgeleri
+# oluşturur ve depoya commit eder.
+name: bootstrap-platforms
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/bootstrap.yml
+      - tool/patch_platforms.py
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Platform klasörleri zaten var mı?
+        id: check
+        run: |
+          if [ -f android/app/build.gradle.kts ] && [ -f windows/CMakeLists.txt ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: subosito/flutter-action@v2
+        if: steps.check.outputs.exists == 'false'
+        with:
+          channel: stable
+          cache: true
+      - name: flutter create + yapılandırma
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          flutter --version
+          flutter create --org com.furkanbaykal --project-name airtrace --platforms=android,windows .
+          rm -f test/widget_test.dart
+          python3 tool/patch_platforms.py .
+          flutter pub get
+          dart run flutter_launcher_icons
+      - name: Commit
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          git config user.name "airtrace-bot"
+          git config user.email "airtrace-bot@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: Android ve Windows platform dosyaları (flutter create + AIRTRACE yapılandırması)"
+          git push
