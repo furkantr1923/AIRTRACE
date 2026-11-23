@@ -121,11 +121,30 @@ class _AirMapState extends State<AirMap> {
           ),
         AirportLayer(airports: s.staticData.airports),
         TrafficLayer(sprite: widget.sprite, clock: widget.frameClock, hitIndex: _hits),
-        const SimpleAttributionWidget(
-          source: Text('© OpenStreetMap katkıcıları  © CARTO', style: TextStyle(fontSize: 10)),
-          backgroundColor: Color(0xAA0A1220),
-        ),
+        const _Attribution(),
       ],
     );
   }
+}
+
+/// Harita sağlayıcısının zorunlu atfı (OSM + CARTO). Dar ekranlarda taşmaz.
+class _Attribution extends StatelessWidget {
+  const _Attribution();
+
+  @override
+  Widget build(BuildContext context) => Align(
+        alignment: Alignment.bottomRight,
+        child: Container(
+          margin: const EdgeInsets.all(3),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.7),
+          decoration: BoxDecoration(color: const Color(0xAA0A1220), borderRadius: BorderRadius.circular(4)),
+          child: const Text(
+            '© OpenStreetMap katkıcıları © CARTO',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 10, color: Color(0xFF9AA8BD)),
+          ),
+        ),
+      );
 }
