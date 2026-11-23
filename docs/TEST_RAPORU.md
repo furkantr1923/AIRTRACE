@@ -1,7 +1,7 @@
 # AIRTRACE v1.0.0 — Test Raporu
 
 **Tarih:** 23 Kasım 2026
-**Derleme:** CI çalıştırması #11 (`main`), Flutter 3.50.1 stable, Android build-tools 37.0.0
+**Derleme:** CI çalıştırması #15 (`main`), Flutter 3.50.1 stable, Android build-tools 37.0.0
 
 Bu rapordaki bütün sonuçlar GitHub Actions üzerinde **gerçek** derlemelerden ve **gerçek** canlı veriyle yapılan testlerden alınmıştır. Testlerde hiçbir yerde sahte uçak verisi kullanılmamıştır.
 
@@ -33,7 +33,7 @@ Bu rapordaki bütün sonuçlar GitHub Actions üzerinde **gerçek** derlemelerde
 | Favoriler korunuyor mu? | ✅ | ✅ | Diskten yeniden okununca kayıt duruyor |
 | Harita kontrolleri çalışıyor mu? | ✅ | ✅ | Yakınlaştır/uzaklaştır ±1 zoom. "Konumuma dön" butonu görünüyor* |
 | Bağlantı kesilmesi doğru yönetiliyor mu? | ✅ | ✅ | "Bağlantı yok" uyarısı çıkıyor. Kesintide 9.277 uçağın tamamı ekranda kaldı |
-| Yeniden bağlantı çalışıyor mu? | ✅ | ✅ | İnternet geri gelince otomatik olarak "Canlı" durumuna döndü |
+| Yeniden bağlantı çalışıyor mu? | ✅ | ✅ | İnternet geri gelince otomatik olarak "Canlı" durumuna döndü (Windows 25 sn, Android 15 sn) |
 | API limitleri korunuyor mu? | ✅ | ✅ | ADS-B.lol'a 30 sn'de 3 istek (10 sn döngü). OpenSky'a 2 dk'da 1 istek (kredi bütçesi) |
 | Bellek tüketimi makul mü? | ✅ | ✅ | Release sürümde açılışta 184 MB. Debug test sürümünde 9.281 uçakla 520 MB, Android'de 4.087 uçakla 454 MB |
 
@@ -85,6 +85,7 @@ Test sürecinde bulunup giderilen hatalar:
 10. Mobil bilgi kartı büyük yazı boyutunda taşıyordu → kart içerik yüksekliğine uyan düzene geçirildi.
 11. Zaman aşımı yanlışlıkla "bağlantı yok" sayılıyordu → sağlayıcı hatası olarak sınıflandırıldı.
 12. **CARTO, Eylül 2026'dan beri anahtar istiyor** ve haritada "API KEY REQUIRED" filigranı çıkıyordu → varsayılan altlık OpenStreetMap yapıldı ve lacivert renk matrisi eklendi. CARTO anahtarı isteğe bağlı olarak Ayarlar'dan girilebiliyor.
+13. İnternet geri geldiğinde bekleme süresi 40 sn'ye kadar çıkabiliyordu → çevrimdışı bekleme süresi en fazla 20 sn ile sınırlandı.
 
 ## Test edilemeyenler (açıkça)
 
