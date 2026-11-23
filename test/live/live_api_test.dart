@@ -3,6 +3,7 @@ library;
 
 import 'dart:io';
 
+import 'package:airtrace/src/data/models/aircraft.dart';
 import 'package:airtrace/src/data/sources/adsblol_source.dart';
 import 'package:airtrace/src/data/sources/http_gateway.dart';
 import 'package:airtrace/src/data/sources/opensky_source.dart';
@@ -20,7 +21,22 @@ void main() {
 
   test('ADS-B.lol Frankfurt çevresinde gerçek uçak döndürür ve konumlar çember içinde', () async {
     const center = LatLng(50.03, 8.57);
-    final list = await AdsbLolSource(gw).fetchCircle(center, 150);
+    // Açık API zaman zaman yoğun olabilir: uygulamadaki gibi geri çekilerek
+    // en fazla 4 deneme.
+    List<Aircraft> list = const [];
+    for (var attempt = 1; attempt <= 4; attempt++) {
+      try {
+        list = await AdsbLolSource(gw).fetchCircle(center, 150);
+        // ignore: avoid_print
+        print('AIRTRACE_METRIC adsb_attempts=$attempt');
+        break;
+      } on SourceException catch (e) {
+        // ignore: avoid_print
+        print('AIRTRACE_METRIC adsb_attempt_failed=$attempt:${e.message}');
+        if (attempt == 4) rethrow;
+        await Future<void>.delayed(Duration(seconds: 5 * attempt));
+      }
+    }
     // ignore: avoid_print
     print('AIRTRACE_METRIC adsb_frankfurt_count=${list.length}');
     expect(list, isNotEmpty);
@@ -30,7 +46,7 @@ void main() {
     }
     expect(list.where((a) => a.callsign != null), isNotEmpty);
     expect(list.where((a) => a.trackDeg != null && a.groundSpeedMs != null), isNotEmpty);
-  }, timeout: const Timeout(Duration(seconds: 40)));
+  }, timeout: const Timeout(Duration(seconds: 120)));
 
   test('OpenSky sınır kutusu sorgusu (anonim) — erişilemezse nedeni raporlanır', () async {
     final os = OpenSkySource(gw);

@@ -55,7 +55,9 @@ class HttpGateway {
     } on SocketException {
       throw const OfflineException();
     } on TimeoutException {
-      throw const OfflineException('Sunucu zamanında yanıt vermedi');
+      // Zaman aşımı genellikle sağlayıcı yoğunluğudur; bağlantı kopukluğu
+      // (SocketException) ayrıca yakalanır.
+      throw const ProviderException('Veri sağlayıcısı zamanında yanıt vermedi');
     } on HandshakeException {
       throw const OfflineException('Güvenli bağlantı kurulamadı');
     } on http.ClientException {
