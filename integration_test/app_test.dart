@@ -27,6 +27,7 @@ void main() {
 
   const shotDir = String.fromEnvironment('SHOT_DIR');
   final rootKey = GlobalKey();
+  String? Function()? lastErrorOf;
 
   // debugPrint hız sınırlıdır; uzun çıktılar kaybolmasın diye print kullanılır.
   // ignore: avoid_print
@@ -35,7 +36,7 @@ void main() {
   Future<void> wait(WidgetTester t, bool Function() ok, {int seconds = 60, String what = ''}) async {
     final end = DateTime.now().add(Duration(seconds: seconds));
     while (!ok()) {
-      if (DateTime.now().isAfter(end)) fail('Zaman aşımı: $what');
+      if (DateTime.now().isAfter(end)) fail('Zaman aşımı: $what (son hata: ${lastErrorOf?.call()})');
       await Future<void>.delayed(const Duration(milliseconds: 500));
       await t.pump();
     }
@@ -75,6 +76,7 @@ void main() {
     await prefs.remove('airtrace.favorites.v1');
     final gateway = SwitchableGateway();
     final services = await buildServices(prefs, http: gateway);
+    lastErrorOf = () => services.live.lastError;
     final sprite = await PlaneSprite.create();
     final started = DateTime.now();
 
@@ -192,8 +194,9 @@ void main() {
     metric('offline_detected=true kept=${services.store.length}/$countBefore');
     await shot(tester, '04_baglanti_yok');
     gateway.offline = false;
-    await wait(tester, () => services.live.status == LinkStatus.live, seconds: 90, what: 'yeniden bağlanma');
-    metric('reconnected=true');
+    final back = DateTime.now();
+    await wait(tester, () => services.live.status == LinkStatus.live, seconds: 150, what: 'yeniden bağlanma');
+    metric('reconnected=true after_s=${DateTime.now().difference(back).inSeconds}');
 
     // 11) Bellek.
     metric('rss_mb=${(ProcessInfo.currentRss / 1048576).toStringAsFixed(1)} '

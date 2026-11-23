@@ -254,10 +254,14 @@ class LiveTrafficController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Bağlantı kopukluğunda en fazla 20 sn beklenir: internet geri geldiğinde
+  /// kullanıcı uzun süre "Bağlantı yok" görmesin. Sağlayıcı hatalarında
+  /// (yoğunluk) 40 sn'ye kadar çıkılır; 429'da sunucunun süresine uyulur.
   Duration _backoff(SourceException e, int failures, {int base = 5}) {
     if (e is RateLimitedException) return e.retryAfter;
+    final cap = e is OfflineException ? 20 : 40;
     final s = base * (1 << (failures - 1).clamp(0, 3));
-    return Duration(seconds: s.clamp(base, 60));
+    return Duration(seconds: s.clamp(base, cap));
   }
 
   /// Kullanıcının açık aramasıyla tek seferlik ağ sorgusu (uçuş kodu,
