@@ -25,6 +25,7 @@ class AboutSheet extends StatefulWidget {
 class _AboutSheetState extends State<AboutSheet> {
   late final TextEditingController _id;
   late final TextEditingController _secret;
+  late final TextEditingController _carto;
   bool _hide = true;
 
   @override
@@ -33,12 +34,14 @@ class _AboutSheetState extends State<AboutSheet> {
     final s = AppScope.of(context);
     _id = TextEditingController(text: s.settings.openSkyClientId ?? '');
     _secret = TextEditingController(text: s.settings.openSkyClientSecret ?? '');
+    _carto = TextEditingController(text: s.settings.cartoKey ?? '');
   }
 
   @override
   void dispose() {
     _id.dispose();
     _secret.dispose();
+    _carto.dispose();
     super.dispose();
   }
 
@@ -47,6 +50,7 @@ class _AboutSheetState extends State<AboutSheet> {
     final nav = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
     await s.settings.setOpenSkyCredentials(_id.text, _secret.text);
+    await s.settings.setCartoKey(_carto.text);
     s.openSkyCredentialsChanged();
     nav.pop();
     messenger.showSnackBar(SnackBar(
@@ -115,10 +119,21 @@ class _AboutSheetState extends State<AboutSheet> {
           ),
         ),
         const SizedBox(height: 16),
+        const Text('HARİTA ALTLIĞI (İSTEĞE BAĞLI)', style: h),
+        const SizedBox(height: 6),
+        const Text(
+          'Varsayılan altlık OpenStreetMap\'tir (anahtarsız, lacivert tona çevrilir). '
+          'carto.com/basemaps/apikey adresinden alınan ücretsiz anahtarı girerseniz '
+          'CARTO Dark Matter altlığı kullanılır.',
+          style: p,
+        ),
+        const SizedBox(height: 10),
+        TextField(controller: _carto, decoration: const InputDecoration(labelText: 'CARTO anahtarı')),
+        const SizedBox(height: 16),
         const Text('LİSANS VE ATIFLAR', style: h),
         const SizedBox(height: 6),
         const Text(
-          'Harita: © OpenStreetMap katkıcıları (ODbL), © CARTO (Dark Matter).\n'
+          'Harita: © OpenStreetMap katkıcıları (ODbL); CARTO anahtarı girilirse © CARTO.\n'
           'Uçak verisi: ADS-B.lol (ODbL 1.0), The OpenSky Network (opensky-network.org).\n'
           'Havalimanları: OurAirports (kamu malı). Havayolları: OpenFlights (ODbL 1.0).\n'
           'Ülke adları: Unicode CLDR. Harita motoru: flutter_map (BSD-3).',

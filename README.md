@@ -100,7 +100,7 @@ lib/
 |---|---|---|
 | Çerçeve | Flutter (stable) | Windows ve Android için tek kod tabanı, yerel performans |
 | Harita | [flutter_map](https://pub.dev/packages/flutter_map) 8 | Saf Dart olduğu için iki platformda aynı davranır. API anahtarı ve ücret gerektirmez, yerleşik disk önbelleği vardır |
-| Altlık | CARTO Dark Matter + renk matrisiyle lacivert ton | Ücretsiz (ticari olmayan kullanım) ve koyu tema için tasarlanmış |
+| Altlık | OpenStreetMap + GPU renk matrisiyle lacivert "kontrol merkezi" tonu (isteğe bağlı: CARTO Dark Matter) | Anahtarsız ve ücretsiz. CARTO, Eylül 2026'dan beri anahtar istediği için varsayılan yapılmadı; kullanıcı ücretsiz anahtarını Ayarlar'dan girebilir |
 | Durum | `ChangeNotifier` + `ListenableBuilder` | Ek paket gerektirmez, öğrenmesi ve bakımı kolaydır |
 | Depolama | `shared_preferences` | Favoriler ve ayarlar için yeterli, hafif |
 | Konum | `geolocator` | Windows ve Android desteği var |
@@ -228,7 +228,7 @@ AIRTRACE kaynak kodu © 2026 Furkan Baykal, tüm hakları saklıdır (bkz. [LICE
 | Bileşen | Lisans / Atıf |
 |---|---|
 | Harita verisi | © [OpenStreetMap](https://www.openstreetmap.org/copyright) katkıcıları (ODbL) |
-| Altlık stili | © [CARTO](https://carto.com/attributions) – Dark Matter |
+| Altlık | [OpenStreetMap](https://operations.osmfoundation.org/policies/tiles/) tile sunucusu (kullanım politikasına uygun: tanımlı User-Agent, önbellek, atıf); isteğe bağlı © [CARTO](https://carto.com/attributions) |
 | Uçak verisi | [ADS-B.lol](https://adsb.lol) (ODbL 1.0), [The OpenSky Network](https://opensky-network.org) |
 | Havalimanları | [OurAirports](https://ourairports.com/data/) (Kamu malı) |
 | Havayolları | [OpenFlights](https://openflights.org/data) (ODbL 1.0) |

@@ -10,6 +10,7 @@ class SettingsStore extends ChangeNotifier {
   static const _kSort = 'airtrace.sort';
   static const _kOsId = 'airtrace.opensky.id';
   static const _kOsSecret = 'airtrace.opensky.secret';
+  static const _kCarto = 'airtrace.carto.key';
 
   final SharedPreferences _prefs;
 
@@ -33,6 +34,20 @@ class SettingsStore extends ChangeNotifier {
     } else {
       await _prefs.setString(_kOsId, id.trim());
       await _prefs.setString(_kOsSecret, secret.trim());
+    }
+    notifyListeners();
+  }
+
+  /// İsteğe bağlı ücretsiz CARTO anahtarı (carto.com/basemaps/apikey).
+  /// Girilirse "Dark Matter" altlığı kullanılır; yoksa OpenStreetMap.
+  String? get cartoKey => _prefs.getString(_kCarto);
+
+  Future<void> setCartoKey(String? key) async {
+    final k = key?.trim();
+    if (k == null || k.isEmpty) {
+      await _prefs.remove(_kCarto);
+    } else {
+      await _prefs.setString(_kCarto, k);
     }
     notifyListeners();
   }

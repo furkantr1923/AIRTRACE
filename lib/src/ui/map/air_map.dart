@@ -12,7 +12,8 @@ import 'airport_layer.dart';
 import 'plane_sprite.dart';
 import 'traffic_layer.dart';
 
-/// Ana dünya haritası: CARTO koyu altlık (lacivert tonlu) + havalimanları +
+/// Ana dünya haritası: OpenStreetMap altlığı (lacivert tona çevrilmiş; isteğe
+/// bağlı CARTO Dark Matter) + havalimanları +
 /// canlı trafik katmanı.
 class AirMap extends StatefulWidget {
   const AirMap({super.key, required this.controller, required this.sprite, required this.frameClock});
@@ -39,13 +40,43 @@ class _AirMapState extends State<AirMap> {
         cachingProvider: BuiltInMapCachingProvider.getOrCreateInstance(maxCacheSize: 200 * 1024 * 1024),
       );
 
-  /// Koyu gri CARTO altlığını lacivert/antrasit tonuna çeken renk matrisi.
-  static const _navyTint = ColorFilter.matrix(<double>[
+  /// OpenStreetMap standart altlığını koyu lacivert "kontrol merkezi" tonuna
+  /// çeviren renk matrisi: parlaklık ters çevrilir (yazılar açık renge döner)
+  /// ve lacivert/elektrik mavisi tona eşlenir.
+  ///   v = 255 - (0.30R + 0.59G + 0.11B)
+  ///   R' = 0.35v + 6,  G' = 0.55v + 10,  B' = 0.85v + 22
+  static const _osmNavy = ColorFilter.matrix(<double>[
+    -0.105, -0.2065, -0.0385, 0, 95.25, //
+    -0.165, -0.3245, -0.0605, 0, 150.25, //
+    -0.255, -0.5015, -0.0935, 0, 238.75, //
+    0, 0, 0, 1, 0,
+  ]);
+
+  /// CARTO Dark Matter (anahtar girildiyse) için hafif lacivert ton.
+  static const _cartoNavy = ColorFilter.matrix(<double>[
     0.78, 0, 0, 0, 1, //
     0, 0.92, 0, 0, 6, //
     0, 0, 1.10, 0, 15, //
     0, 0, 0, 1, 0,
   ]);
+
+  Widget _baseLayer(String? cartoKey) {
+    final carto = cartoKey != null && cartoKey.isNotEmpty;
+    return ColorFiltered(
+      colorFilter: carto ? _cartoNavy : _osmNavy,
+      child: TileLayer(
+        key: ValueKey(carto),
+        urlTemplate: carto
+            ? 'https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png?key={key}'
+            : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        additionalOptions: carto ? {'key': cartoKey} : const {},
+        maxNativeZoom: 19,
+        userAgentPackageName: 'com.furkanbaykal.airtrace',
+        tileProvider: _tileProvider,
+        tileDisplay: const TileDisplay.fadeIn(duration: Duration(milliseconds: 120)),
+      ),
+    );
+  }
 
   void _onPosition(MapCamera camera) {
     final s = AppScope.of(context);
@@ -110,16 +141,9 @@ class _AirMapState extends State<AirMap> {
       ),
       children: [
         if (AirMap.tilesEnabled)
-          ColorFiltered(
-            colorFilter: _navyTint,
-            child: TileLayer(
-              urlTemplate: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-              subdomains: const ['a', 'b', 'c', 'd'],
-              maxNativeZoom: 19,
-              userAgentPackageName: 'com.furkanbaykal.airtrace',
-              tileProvider: _tileProvider,
-              tileDisplay: const TileDisplay.fadeIn(duration: Duration(milliseconds: 120)),
-            ),
+          ListenableBuilder(
+            listenable: s.settings,
+            builder: (context, _) => _baseLayer(s.settings.cartoKey),
           ),
         AirportLayer(airports: s.staticData.airports),
         TrafficLayer(sprite: widget.sprite, clock: widget.frameClock, hitIndex: _hits),
@@ -141,11 +165,11 @@ class _Attribution extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.7),
           decoration: BoxDecoration(color: const Color(0xAA0A1220), borderRadius: BorderRadius.circular(4)),
-          child: const Text(
-            '© OpenStreetMap katkıcıları © CARTO',
+          child: Text(
+            AppScope.of(context).settings.cartoKey == null ? '© OpenStreetMap katkıcıları' : '© OpenStreetMap katkıcıları © CARTO',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 10, color: Color(0xFF9AA8BD)),
+            style: const TextStyle(fontSize: 10, color: Color(0xFF9AA8BD)),
           ),
         ),
       );
