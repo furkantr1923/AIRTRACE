@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:airtrace/src/core/format.dart';
 import 'package:airtrace/src/data/sources/opensky_source.dart';
 import 'package:airtrace/src/domain/clustering.dart';
@@ -104,14 +102,14 @@ void main() {
   group('Veri planlayıcı ve limitler', () {
     const p = FetchPlanner();
     test('dar görünüm: yalnızca ADS-B.lol', () {
-      final plan = p.plan(const Viewport(center: LatLng(41, 29), radiusNm: 120, box: GeoBox(39, 27, 43, 31), zoom: 8),
+      final plan = p.plan(const MapViewport(center: LatLng(41, 29), radiusNm: 120, box: GeoBox(39, 27, 43, 31), zoom: 8),
           openSkyAvailable: true);
       expect(plan.useAdsbLol, isTrue);
       expect(plan.useOpenSky, isFalse);
       expect(plan.circleRadiusNm, lessThanOrEqualTo(250));
     });
     test('dünya görünümü: OpenSky; kota yoksa ADS-B.lol merkez çemberi', () {
-      const v = Viewport(center: LatLng(20, 0), radiusNm: 9000, box: null, zoom: 2);
+      const v = MapViewport(center: LatLng(20, 0), radiusNm: 9000, box: null, zoom: 2);
       final a = p.plan(v, openSkyAvailable: true);
       expect(a.useOpenSky, isTrue);
       expect(a.useAdsbLol, isFalse);

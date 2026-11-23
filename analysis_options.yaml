@@ -4,6 +4,10 @@ analyzer:
   language:
     strict-casts: true
     strict-raw-types: true
+  errors:
+    # Flutter 3.47+ material.dart'ı material_ui paketine taşıma uyarısı veriyor.
+    # Eski/yeni Flutter sürümleriyle uyum için şimdilik material.dart kullanılıyor.
+    deprecated_member_use: ignore
   exclude:
     - build/**
     - android/**

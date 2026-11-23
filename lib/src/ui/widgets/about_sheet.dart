@@ -9,9 +9,12 @@ class AboutSheet extends StatefulWidget {
 
   static Future<void> show(BuildContext context) => showDialog<void>(
         context: context,
-        builder: (_) => const Dialog(
-          insetPadding: EdgeInsets.all(20),
-          child: ConstrainedBox(constraints: BoxConstraints(maxWidth: 560, maxHeight: 720), child: AboutSheet()),
+        builder: (_) => Dialog(
+          insetPadding: const EdgeInsets.all(20),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560, maxHeight: 720),
+            child: const AboutSheet(),
+          ),
         ),
       );
 

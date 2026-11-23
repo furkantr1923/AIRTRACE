@@ -6,8 +6,8 @@ import '../data/sources/adsblol_source.dart';
 import '../data/sources/opensky_source.dart';
 
 /// Haritanın o an görünen alanı.
-class Viewport {
-  const Viewport({required this.center, required this.radiusNm, required this.box, required this.zoom});
+class MapViewport {
+  const MapViewport({required this.center, required this.radiusNm, required this.box, required this.zoom});
 
   final LatLng center;
 
@@ -19,7 +19,7 @@ class Viewport {
   final GeoBox? box;
   final double zoom;
 
-  bool similarTo(Viewport o) =>
+  bool similarTo(MapViewport o) =>
       (zoom - o.zoom).abs() < 0.5 &&
       (center.latitude - o.center.latitude).abs() < radiusNm / 600 &&
       (center.longitude - o.center.longitude).abs() < radiusNm / 600;
@@ -49,7 +49,7 @@ class FetchPlanner {
 
   static const wideOnlyRadiusNm = 1500.0;
 
-  FetchPlan plan(Viewport v, {required bool openSkyAvailable}) {
+  FetchPlan plan(MapViewport v, {required bool openSkyAvailable}) {
     final fitsCircle = v.radiusNm <= AdsbLolSource.maxRadiusNm;
     if (fitsCircle) {
       return FetchPlan(circleCenter: v.center, circleRadiusNm: math.max(5, (v.radiusNm * 1.1).ceil()).clamp(5, 250));

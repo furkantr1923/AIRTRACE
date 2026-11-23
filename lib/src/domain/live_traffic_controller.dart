@@ -50,7 +50,7 @@ class LiveTrafficController extends ChangeNotifier {
   final DateTime Function() _clock;
 
   Timer? _timer;
-  Viewport? _viewport;
+  MapViewport? _viewport;
   bool _running = false;
 
   DateTime _adsbDue = DateTime.fromMillisecondsSinceEpoch(0);
@@ -76,7 +76,7 @@ class LiveTrafficController extends ChangeNotifier {
   bool usingAdsb = false, usingOpenSky = false;
 
   bool get isRunning => _running;
-  Viewport? get viewport => _viewport;
+  MapViewport? get viewport => _viewport;
   /// Son engel nedeni kota mı (true) yoksa sağlayıcı hatası mı (false).
   bool openSkyQuotaExhausted = false;
 
@@ -113,7 +113,7 @@ class LiveTrafficController extends ChangeNotifier {
     super.dispose();
   }
 
-  void setViewport(Viewport v) {
+  void setViewport(MapViewport v) {
     final old = _viewport;
     _viewport = v;
     if (old != null && old.similarTo(v)) return;

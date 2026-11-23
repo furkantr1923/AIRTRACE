@@ -4,7 +4,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:latlong2/latlong.dart' show LatLng;
 
 import '../../app_scope.dart';
 import '../../core/theme.dart';
@@ -300,7 +300,7 @@ class _TrafficPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.2;
       for (final c in clusters) {
-        final r = 10 + math.min(14.0, math.log(c.count) * 2.6);
+        final r = 10.0 + math.min(14.0, math.log(c.count) * 2.6);
         canvas.drawCircle(c.center, r, fill);
         canvas.drawCircle(c.center, r, stroke);
         final tp = _countLabel(c.count);

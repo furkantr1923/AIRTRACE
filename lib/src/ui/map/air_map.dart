@@ -52,7 +52,7 @@ class _AirMapState extends State<AirMap> {
     s.live.setViewport(viewportOf(camera));
   }
 
-  static Viewport viewportOf(MapCamera camera) {
+  static MapViewport viewportOf(MapCamera camera) {
     final b = camera.visibleBounds;
     final worldW = camera.getWorldWidthAtZoom();
     final lonWidth = worldW > 0 ? camera.nonRotatedSize.width * 360 / worldW : 360.0;
@@ -70,7 +70,7 @@ class _AirMapState extends State<AirMap> {
             LatLng(b.south, box.west),
             LatLng(b.south, box.east),
           ].map((p) => Geo.distanceNm(c, p)).reduce(math.max);
-    return Viewport(center: c, radiusNm: radius, box: box, zoom: camera.zoom);
+    return MapViewport(center: c, radiusNm: radius, box: box, zoom: camera.zoom);
   }
 
   void _onTap(TapPosition pos, LatLng _) {
