@@ -36,10 +36,8 @@ def manifest(s):
 
 edit('android/app/src/main/AndroidManifest.xml', manifest)
 
+IMPORTS_KTS = 'import java.io.FileInputStream\nimport java.util.Properties\n\n'
 SIGNING_KTS = '''
-import java.util.Properties
-import java.io.FileInputStream
-
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
@@ -51,7 +49,7 @@ if (keystorePropertiesFile.exists()) {
 def gradle(s):
     if 'keystoreProperties' in s:
         return s
-    s = re.sub(r'(plugins \{.*?\n\}\n)', r'\1' + SIGNING_KTS, s, count=1, flags=re.S)
+    s = IMPORTS_KTS + re.sub(r'(plugins \{.*?\n\}\n)', r'\1' + SIGNING_KTS, s, count=1, flags=re.S)
     s = re.sub(r'(\n    defaultConfig \{)', '''
     signingConfigs {
         create("release") {
