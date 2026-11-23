@@ -185,6 +185,8 @@ Derlenen dosyalar herkese açık **yayınlanmaz**. Teslimat paketi geliştiricin
 | Canlı API (`test/live`) | ADS-B.lol ve OpenSky'a **gerçek** istek, konumların sorgu alanında olduğunun doğrulanması |
 | Uçtan uca (`integration_test`) | Gerçek uygulama ve gerçek veriyle: açılış, ilk veri, yakınlaştırma, konum doğruluğu, bilgi kartı, favori kalıcılığı, arama, harita kontrolleri, istek limiti, bağlantı kesilmesi ve yeniden bağlanma, bellek ölçümü. Windows ve Android emülatöründe çalışır |
 
+Son sürümün ayrıntılı sonuçları: **[docs/TEST_RAPORU.md](docs/TEST_RAPORU.md)**
+
 ```bash
 flutter test --exclude-tags live            # birim + widget
 flutter test --tags live test/live          # gerçek ağ
