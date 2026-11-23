@@ -28,7 +28,9 @@ void main() {
   const shotDir = String.fromEnvironment('SHOT_DIR');
   final rootKey = GlobalKey();
 
-  void metric(String s) => debugPrint('AIRTRACE_METRIC $s');
+  // debugPrint hız sınırlıdır; uzun çıktılar kaybolmasın diye print kullanılır.
+  // ignore: avoid_print
+  void metric(String s) => print('AIRTRACE_METRIC $s');
 
   Future<void> wait(WidgetTester t, bool Function() ok, {int seconds = 60, String what = ''}) async {
     final end = DateTime.now().add(Duration(seconds: seconds));
@@ -60,7 +62,8 @@ void main() {
       const chunk = 800;
       for (var i = 0; i * chunk < b64.length; i++) {
         final part = b64.substring(i * chunk, ((i + 1) * chunk).clamp(0, b64.length));
-        debugPrint('AIRTRACE_SHOT|$name|$i|$part');
+        // ignore: avoid_print
+        print('AIRTRACE_SHOT|$name|$i|$part');
       }
     }
     metric('screenshot=$name bytes=${bytes.length}');

@@ -129,7 +129,16 @@ class _HomePageState extends State<HomePage> {
           ),
           child: s.selection.selectedHex == null
               ? null
-              : const SingleChildScrollView(child: SizedBox(width: 340, child: AircraftInfo())),
+              // Genişlik animasyonu sırasında içerik sıkışmasın diye sabit genişlikte
+              // çizilip kırpılır.
+              : const ClipRect(
+                  child: OverflowBox(
+                    alignment: Alignment.topLeft,
+                    minWidth: 340,
+                    maxWidth: 340,
+                    child: SingleChildScrollView(child: AircraftInfo()),
+                  ),
+                ),
         ),
       ),
     ]);

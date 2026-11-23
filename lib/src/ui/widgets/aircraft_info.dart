@@ -56,10 +56,11 @@ class _AircraftInfoState extends State<AircraftInfo> {
         final dp = const Interpolator().at(a, DateTime.now());
         final route = s.selection.route;
         final tiles = [
-          _Tile('Uçuş kodu', a.callsign ?? Fmt.unknown, null),
-          _Tile('Ülke', t.country ?? Fmt.unknown, null),
-          _Tile('Hız', Fmt.speed(a.groundSpeedMs), Fmt.speedKt(a.groundSpeedMs)),
-          _Tile('İrtifa', Fmt.altitude(a.altitudeM, onGround: a.onGround),
+          // Etiketler Türkçe büyük harfle yazılı (Dart toUpperCase 'i'yi 'I' yapar).
+          _Tile('UÇUŞ KODU', a.callsign ?? Fmt.unknown, null),
+          _Tile('ÜLKE', t.country ?? Fmt.unknown, null),
+          _Tile('HIZ', Fmt.speed(a.groundSpeedMs), Fmt.speedKt(a.groundSpeedMs)),
+          _Tile('İRTİFA', Fmt.altitude(a.altitudeM, onGround: a.onGround),
               [Fmt.altitudeFt(a.altitudeM, onGround: a.onGround), Fmt.verticalTrend(a.verticalRateMs)].where((e) => e.isNotEmpty).join('  ')),
         ];
         final ident = [a.registration, a.typeCode].whereType<String>().join(' · ');
@@ -176,7 +177,7 @@ class _Tile extends StatelessWidget {
           border: Border.all(color: AppColors.stroke),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text(label.toUpperCase(), style: const TextStyle(fontSize: 10, letterSpacing: 1.1, color: AppColors.textLo, fontWeight: FontWeight.w600)),
+          Text(label, style: const TextStyle(fontSize: 10, letterSpacing: 1.1, color: AppColors.textLo, fontWeight: FontWeight.w600)),
           const SizedBox(height: 3),
           FittedBox(
             fit: BoxFit.scaleDown,
